@@ -26,13 +26,18 @@ func main() {
 		WithMountedDirectory("/src", src).
 		WithWorkdir("/src")
 
+	// ビルド先のディレクトリ
+	path := "build/"
+
 	// 実行するコマンドを設定する
 	container = container.
 		WithExec([]string{"go", "test", "-v", "./..."}).
-		WithExec([]string{"go", "build"})
+		WithExec([]string{"go", "build", "-o", path})
 
 	// パイプラインを実行する
-	if _, err := container.ExitCode(ctx); err != nil {
+	// Export でビルド先のディレクトリをホストに書き込む
+	output := container.Directory(path)
+	if _, err := output.Export(ctx, path); err != nil {
 		panic(err)
 	}
 }
