@@ -1,0 +1,16 @@
+version: 2.1
+
+jobs:
+  ci:
+    docker:
+      - image: golang:1.19
+    steps:
+      - checkout
+      - run:
+          name: ci
+          command: go run ./main.go
+
+workflows:
+  ci:
+    jobs:
+      - ci
