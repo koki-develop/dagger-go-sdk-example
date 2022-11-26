@@ -16,4 +16,13 @@ func main() {
 		panic(err)
 	}
 	defer client.Close()
+
+	// Docker イメージを取得する
+	container := client.Container().From("golang:1.19")
+
+	// カレントディレクトリをコンテナにマウントする
+	src := client.Host().Directory(".")
+	container = container.
+		WithMountedDirectory("/src", src).
+		WithWorkdir("/src")
 }
