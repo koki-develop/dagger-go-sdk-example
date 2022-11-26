@@ -30,4 +30,9 @@ func main() {
 	container = container.
 		WithExec([]string{"go", "test", "-v", "./..."}).
 		WithExec([]string{"go", "build"})
+
+	// パイプラインを実行する
+	if _, err := container.ExitCode(ctx); err != nil {
+		panic(err)
+	}
 }
