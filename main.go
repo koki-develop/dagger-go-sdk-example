@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"dagger.io/dagger"
@@ -17,6 +18,10 @@ func main() {
 	}
 	defer client.Close()
 
+	// ビルドマトリックス
+	oses := []string{"linux", "darwin"}
+	arches := []string{"amd64", "arm64"}
+
 	// Docker イメージを取得する
 	container := client.Container().From("golang:1.19")
 
@@ -26,18 +31,32 @@ func main() {
 		WithMountedDirectory("/src", src).
 		WithWorkdir("/src")
 
-	// ビルド先のディレクトリ
-	path := "build/"
+	// テストを実行
+	container = container.WithExec([]string{"go", "test", "-v", "./..."})
 
-	// 実行するコマンドを設定する
-	container = container.
-		WithExec([]string{"go", "test", "-v", "./..."}).
-		WithExec([]string{"go", "build", "-o", path})
+	// ビルド配置用の空のディレクトリを用意
+	outputs := client.Directory()
+	for _, goos := range oses {
+		for _, goarch := range arches {
+			// ビルド先のディレクトリ
+			path := fmt.Sprintf("build/%s/%s/", goos, goarch)
+
+			// GOOS, GOARCH 環境変数を設定
+			container = container.
+				WithEnvVariable("GOOS", goos).
+				WithEnvVariable("GOARCH", goarch)
+
+			// ビルド
+			container = container.WithExec([]string{"go", "build", "-o", path})
+
+			// アウトプットにビルド先のディレクトリを追加
+			outputs = outputs.WithDirectory(path, container.Directory(path))
+		}
+	}
 
 	// パイプラインを実行する
 	// Export でビルド先のディレクトリをホストに書き込む
-	output := container.Directory(path)
-	if _, err := output.Export(ctx, path); err != nil {
+	if _, err := outputs.Export(ctx, "."); err != nil {
 		panic(err)
 	}
 }
