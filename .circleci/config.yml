@@ -6,6 +6,7 @@ jobs:
       image: ubuntu-2204:current
     steps:
       - checkout
+      - run: go version
       - run:
           name: ci
           command: go run ./main.go
