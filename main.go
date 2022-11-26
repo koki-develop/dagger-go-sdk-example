@@ -25,4 +25,9 @@ func main() {
 	container = container.
 		WithMountedDirectory("/src", src).
 		WithWorkdir("/src")
+
+	// 実行するコマンドを設定する
+	container = container.
+		WithExec([]string{"go", "test", "-v", "./..."}).
+		WithExec([]string{"go", "build"})
 }
