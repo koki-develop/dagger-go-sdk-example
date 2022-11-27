@@ -11,7 +11,8 @@ import (
 func main() {
 	ctx := context.Background()
 
-	// クライアントを初期化
+	// クライアントを初期化して Dagger Engine に接続する
+	// dagger.WithLogOutput でログの出力先を指定できる
 	client, err := dagger.Connect(ctx, dagger.WithLogOutput(os.Stdout))
 	if err != nil {
 		panic(err)
